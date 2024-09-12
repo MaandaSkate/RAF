@@ -1,0 +1,16 @@
+streamlit
+pandas
+plotly
+pdfkit
+localtunnel
+geopy
+streamlit-folium
+folium
+googlemaps
+google-auth
+google-auth-oauthlib
+gspread
+sendgrid
+fpdf
+oauth2client
+gspread-dataframe
