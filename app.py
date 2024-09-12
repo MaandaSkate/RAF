@@ -19,20 +19,38 @@ from gspread_dataframe import get_as_dataframe, set_with_dataframe
 import base64
 import requests
 import plotly.express as px
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Configuration for Google Sheets API
-SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account_file"]
-SHEET_URL = st.secrets["sheet_url"]
-GMAIL_USER = st.secrets["gmail_user"]
-GMAIL_PASSWORD = st.secrets["gmail_password"]
+# Access GCP service account credentials
+gcp_credentials = {
+    "type": st.secrets["gcp_service_account"]["type"],
+    "project_id": st.secrets["gcp_service_account"]["project_id"],
+    "private_key_id": st.secrets["gcp_service_account"]["private_key_id"],
+    "private_key": st.secrets["gcp_service_account"]["private_key"].replace('\\n', '\n'),
+    "client_email": st.secrets["gcp_service_account"]["client_email"],
+    "client_id": st.secrets["gcp_service_account"]["client_id"],
+    "auth_uri": st.secrets["gcp_service_account"]["auth_uri"],
+    "token_uri": st.secrets["gcp_service_account"]["token_uri"],
+    "auth_provider_x509_cert_url": st.secrets["gcp_service_account"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url": st.secrets["gcp_service_account"]["client_x509_cert_url"]
+}
 
-# Google Sheets authorization
+# Access Google Sheets URL
+sheet_url = st.secrets["sheet"]["SHEET_URL"]
+
+# Access Gmail credentials
+gmail_user = st.secrets["gmail"]["GMAIL_USER"]
+gmail_password = st.secrets["gmail"]["GMAIL_PASSWORD"]
+
+# Example usage: Access the Google Sheets using gspread and oauth2client
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(gcp_credentials, scope)
 client = gspread.authorize(creds)
-sheet = client.open_by_url(SHEET_URL)
-user_data_sheet = sheet.worksheet("Users")
-accident_report_sheet = sheet.worksheet("AccidentReports")
+
+# Open the Google Sheet
+sheet = client.open_by_url(sheet_url).sheet1
+st.write("Google Sheet content:", sheet.get_all_records())
+
 
 # Google Drive setup
 drive_service = build('drive', 'v3', credentials=creds)
