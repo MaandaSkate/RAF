@@ -7,8 +7,8 @@ from email.mime.text import MIMEText
 import hashlib
 import os
 import tempfile
-from googleapiclient.http import MediaFileUpload
-from googleapiclient.discovery import build
+#from googleapiclient.http import MediaFileUpload
+#from googleapiclient.discovery import build
 import pandas as pd
 import mimetypes
 import folium
