@@ -1,8 +1,6 @@
 streamlit
 pandas
 plotly
-
-localtunnel
 geopy
 streamlit-folium
 folium
@@ -14,3 +12,8 @@ sendgrid
 fpdf
 oauth2client
 gspread-dataframe
+pyngrok  # Optional if using for tunneling
+streamlit==1.38.0
+pandas==2.2.2
+plotly==5.24.0
+
