@@ -8,7 +8,6 @@ import hashlib
 import os
 import tempfile
 from googleapiclient.http import MediaFileUpload
-import pdfkit
 from googleapiclient.discovery import build
 import pandas as pd
 import mimetypes
