@@ -1,7 +1,7 @@
 streamlit
 pandas
 plotly
-pdfkit
+
 localtunnel
 geopy
 streamlit-folium
