@@ -28,11 +28,12 @@ import time
 # Hide Streamlit style elements
 hide_st_style = """
 <style>
-#MainMenu {visibility: hidden;}  /* Hides the main menu */
-footer {visibility: hidden;}      /* Hides the footer */
-header {visibility: hidden;}      /* Hides the header */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
 </style>
 """
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 
 
