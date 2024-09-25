@@ -1,6 +1,7 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
+from google.oauth2 import service_account
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -33,35 +34,36 @@ header {visibility: hidden;}
 </style>
 """
 
-# Access GCP service account credentials
+
 # Access secret values from the secrets store
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
 )
 
-# Use the credentials to connect to Google Sheets or other Google APIs
-gc = gspread.authorize(credentials)
+# Define the scopes for Google Sheets and Drive
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = credentials.with_scopes(scope)
 
+# Authorize Google Sheets access
+client = gspread.authorize(credentials)
 
+# Open specific Google Sheets
+sheet = client.open_by_url(SHEET_URL)
+user_data_sheet = sheet.worksheet("Users")
+accident_report_sheet = sheet.worksheet("AccidentReports")
+injury_assessment_sheet = sheet.worksheet("InjuryAssessment")
+raf_1_sheet = sheet.worksheet("Claims")
+supplier_claim_sheet = sheet.worksheet("SupplierClaims")
 
 # Access Gmail credentials
 gmail_user = st.secrets["gmail"]["GMAIL_USER"]
 gmail_password = st.secrets["gmail"]["GMAIL_PASSWORD"]
 
-# Authorize Google Sheets access
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scope)
-client = gspread.authorize(creds)
-sheet = client.open_by_url(SHEET_URL)
-user_data_sheet = sheet.worksheet("Users")  # User data sheet
-accident_report_sheet = sheet.worksheet("AccidentReports")  # Accident report sheet
-injury_assessment_sheet = sheet.worksheet("InjuryAssessment")  # Injury assessment sheet
-raf_1_sheet = sheet.worksheet("Claims")  # Claim sheet
-supplier_claim_sheet = sheet.worksheet("SupplierClaims")  # Supplier claim sheet
 
 
 # Google Drive setup
-drive_service = build('drive', 'v3', credentials=creds)
+drive_service = build('drive', 'v3', credentials=credentials)
+
 
 
 
