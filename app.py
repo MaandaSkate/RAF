@@ -28,11 +28,12 @@ import time
 # Hide Streamlit style elements
 hide_st_style = """
 <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
+#MainMenu {visibility: hidden;}  /* Hides the main menu */
+footer {visibility: hidden;}      /* Hides the footer */
+header {visibility: hidden;}      /* Hides the header */
 </style>
 """
+
 
 
 # Access secret values from the secrets store
