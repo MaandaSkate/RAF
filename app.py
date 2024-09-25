@@ -7,8 +7,9 @@ from email.mime.text import MIMEText
 import hashlib
 import os
 import tempfile
-#from googleapiclient.http import MediaFileUpload
-#from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+import pdfkit
+from googleapiclient.discovery import build
 import pandas as pd
 import mimetypes
 import folium
@@ -18,38 +19,45 @@ import datetime
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 import base64
 import requests
+from streamlit_option_menu import option_menu
 import plotly.express as px
-from oauth2client.service_account import ServiceAccountCredentials
+from streamlit_folium import st_folium
+import time
+
+# Hide Streamlit style elements
+hide_st_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+"""
 
 # Access GCP service account credentials
-gcp_credentials = {
-    "type": st.secrets["gcp_service_account"]["type"],
-    "project_id": st.secrets["gcp_service_account"]["project_id"],
-    "private_key_id": st.secrets["gcp_service_account"]["private_key_id"],
-    "private_key": st.secrets["gcp_service_account"]["private_key"].replace('\\n', '\n'),
-    "client_email": st.secrets["gcp_service_account"]["client_email"],
-    "client_id": st.secrets["gcp_service_account"]["client_id"],
-    "auth_uri": st.secrets["gcp_service_account"]["auth_uri"],
-    "token_uri": st.secrets["gcp_service_account"]["token_uri"],
-    "auth_provider_x509_cert_url": st.secrets["gcp_service_account"]["auth_provider_x509_cert_url"],
-    "client_x509_cert_url": st.secrets["gcp_service_account"]["client_x509_cert_url"]
-}
+# Access secret values from the secrets store
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"]
+)
 
-# Access Google Sheets URL
-sheet_url = st.secrets["sheet"]["SHEET_URL"]
+# Use the credentials to connect to Google Sheets or other Google APIs
+gc = gspread.authorize(credentials)
+
+
 
 # Access Gmail credentials
 gmail_user = st.secrets["gmail"]["GMAIL_USER"]
 gmail_password = st.secrets["gmail"]["GMAIL_PASSWORD"]
 
-# Example usage: Access the Google Sheets using gspread and oauth2client
+# Authorize Google Sheets access
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(gcp_credentials, scope)
+creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=scope)
 client = gspread.authorize(creds)
-
-# Open the Google Sheet
-sheet = client.open_by_url(sheet_url).sheet1
-st.write("Google Sheet content:", sheet.get_all_records())
+sheet = client.open_by_url(SHEET_URL)
+user_data_sheet = sheet.worksheet("Users")  # User data sheet
+accident_report_sheet = sheet.worksheet("AccidentReports")  # Accident report sheet
+injury_assessment_sheet = sheet.worksheet("InjuryAssessment")  # Injury assessment sheet
+raf_1_sheet = sheet.worksheet("Claims")  # Claim sheet
+supplier_claim_sheet = sheet.worksheet("SupplierClaims")  # Supplier claim sheet
 
 
 # Google Drive setup
