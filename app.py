@@ -40,20 +40,26 @@ credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
 )
 
-# Define the scopes for Google Sheets and Drive
+# Define the scopes for accessing Google Sheets and Google Drive
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 credentials = credentials.with_scopes(scope)
 
 # Authorize Google Sheets access
 client = gspread.authorize(credentials)
 
-# Open specific Google Sheets
+# Get the Google Sheets URL from secrets
+SHEET_URL = st.secrets["sheets"]["SHEET_URL"]
+
+# Open the Google Sheets using the URL from secrets
 sheet = client.open_by_url(SHEET_URL)
-user_data_sheet = sheet.worksheet("Users")
-accident_report_sheet = sheet.worksheet("AccidentReports")
-injury_assessment_sheet = sheet.worksheet("InjuryAssessment")
-raf_1_sheet = sheet.worksheet("Claims")
-supplier_claim_sheet = sheet.worksheet("SupplierClaims")
+
+# Access specific sheets (worksheets)
+user_data_sheet = sheet.worksheet("Users")  # User data sheet
+accident_report_sheet = sheet.worksheet("AccidentReports")  # Accident report sheet
+injury_assessment_sheet = sheet.worksheet("InjuryAssessment")  # Injury assessment sheet
+raf_1_sheet = sheet.worksheet("Claims")  # Claim sheet
+supplier_claim_sheet = sheet.worksheet("SupplierClaims")  # Supplier claim sheet
+
 
 # Access Gmail credentials
 gmail_user = st.secrets["gmail"]["GMAIL_USER"]
