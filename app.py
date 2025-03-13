@@ -1,17 +1,34 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 import uuid
-import datetime
 
-# Google Sheets Authentication
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("your_credentials.json", scope)
+# --- GOOGLE SHEETS AUTH FIX ---
+# Try loading credentials from environment variable (for Streamlit Cloud)
+if "GOOGLE_SHEETS_CREDENTIALS" in os.environ:
+    creds_dict = json.loads(os.environ["GOOGLE_SHEETS_CREDENTIALS"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"])
+else:
+    # Local authentication - Ensure the JSON file exists
+    json_path = "your_credentials.json"  # Replace with the actual path if needed
+    if not os.path.exists(json_path):
+        st.error("Authentication failed: Credentials file not found.")
+        st.stop()
+    creds = ServiceAccountCredentials.from_json_keyfile_name(json_path, ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"])
+
+# Connect to Google Sheets
 client = gspread.authorize(creds)
-
-# Open the Google Sheet
-sheet = client.open("Your_Google_Sheet_Name")
-activation_data_sheet = sheet.worksheet("AppActivationData")  # Ensure this matches your worksheet name
+try:
+    sheet = client.open("Your_Google_Sheet_Name")  # Make sure this is correct
+    activation_data_sheet = sheet.worksheet("AppActivationData")  # Adjust to match your sheet name
+except gspread.exceptions.SpreadsheetNotFound:
+    st.error("Google Sheet not found. Check the sheet name.")
+    st.stop()
+except gspread.exceptions.WorksheetNotFound:
+    st.error("Worksheet 'AppActivationData' not found. Ensure it exists.")
+    st.stop()
 
 # --- UI DESIGN ---  
 st.set_page_config(layout="centered", page_title="JTI Activation Form", page_icon="📋")
@@ -26,11 +43,11 @@ st.markdown(
             right: 10px;
         }
         img {
-            width: 120px; /* Adjust size for mobile */
+            width: 120px;
         }
         @media (max-width: 768px) {
             img {
-                width: 80px; /* Smaller logo on mobile */
+                width: 80px;
             }
         }
     </style>
@@ -52,8 +69,6 @@ with st.form("activation_form"):
     activation_name = st.text_input("Activation Name")
     activation_brand = st.text_input("Activation Brand")
     region = st.text_input("Region")
-    
-    # Removed Camel/Winston question & Recommendation Score
     
     competitor_brand = st.selectbox(
         "Competitor Brand",
@@ -89,6 +104,7 @@ if submit_button:
     activation_data_sheet.append_row(form_data, value_input_option="USER_ENTERED")
 
     st.success("Data successfully submitted!")
+
 
 
 
