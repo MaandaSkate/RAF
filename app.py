@@ -1,36 +1,8 @@
 import streamlit as st
 import gspread
-from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import hashlib
-import os
-import tempfile
-from googleapiclient.http import MediaFileUpload
-import pdfkit
-from googleapiclient.discovery import build
-import pandas as pd
-import mimetypes
-import folium
-from streamlit_folium import folium_static
-from fpdf import FPDF
-import datetime
-from gspread_dataframe import get_as_dataframe, set_with_dataframe
-import base64
-import requests
-from streamlit_option_menu import option_menu
-import plotly.express as px
-from streamlit_folium import st_folium
-import time
-import pandas as pd
 import uuid
 import datetime
-import gspread
-from google.auth.transport.requests import Request
-from google.oauth2 import service_account
-from streamlit_option_menu import option_menu
 
 # Access secret values from the secrets store
 credentials = service_account.Credentials.from_service_account_info(
@@ -141,4 +113,5 @@ with st.form("app_activation_form"):
             # Append data to Google Sheet
             append_to_sheet(form_data)
             st.success("Activation Data Submitted Successfully! 🚀")
+
 
