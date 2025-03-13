@@ -1,8 +1,11 @@
 import streamlit as st
 import gspread
+from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 import uuid
 import datetime
+import pandas as pd
+from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
 # Access secret values from the secrets store
 credentials = service_account.Credentials.from_service_account_info(
@@ -48,9 +51,9 @@ with st.form("app_activation_form"):
     
     # Inputs
     with col1:
-        activation_id = st.text_input("ID", value=str(uuid.uuid4()), disabled=True)
-        start_date = st.date_input("Start Date", value=datetime.datetime.now().date())
-        start_time = st.time_input("Start Time", value=datetime.datetime.now().time())
+        activation_id = str(uuid.uuid4())  # Convert UUID to string
+        start_date = datetime.datetime.now().date()  # datetime.date
+        start_time = datetime.datetime.now().time()  # datetime.time
     with col2:
         venue = st.text_input("Venue", value="Mieliepop Festival")
         activation_name = st.text_input("Activation Name", value="Mieliepop Festival")
@@ -95,9 +98,9 @@ with st.form("app_activation_form"):
         else:
             # Collect form data into a list
             form_data = [
-                activation_id,
-                start_date,
-                start_time,
+                str(activation_id),  # Convert UUID to string
+                start_date.strftime("%Y-%m-%d"),  # Convert datetime.date to string
+                start_time.strftime("%H:%M:%S"),  # Convert datetime.time to string
                 venue,
                 activation_name,
                 activation_brand,
@@ -107,11 +110,13 @@ with st.form("app_activation_form"):
                 competitor_brand,
                 jti_products,
                 did_sale,
-                num_sales,
+                num_sales if num_sales is not None else 0,  # Ensure num_sales is a number
                 capture_agency
             ]
+            
             # Append data to Google Sheet
             append_to_sheet(form_data)
             st.success("Activation Data Submitted Successfully! 🚀")
+
 
 
