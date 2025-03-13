@@ -40,17 +40,8 @@ st.markdown("""
         .stSelectbox>div {
             border-radius: 10px; padding: 10px;
         }
-        .logo-container {
-            position: absolute; top: 10px; right: 10px;
-        }
     </style>
 """, unsafe_allow_html=True)
-
-# Add JTI logo at the top-right
-st.markdown(
-    '<div class="logo-container"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Japan_Tobacco_International_logo.svg/2560px-Japan_Tobacco_International_logo.svg.png" width="120"/></div>',
-    unsafe_allow_html=True
-)
 
 # App Activation Data Form
 st.markdown("## 📲 App Activation Data Form")
@@ -117,6 +108,7 @@ with st.form("app_activation_form"):
 
             append_to_sheet(form_data)
             st.success("Activation Data Submitted Successfully! 🚀")
+
 
 
 
