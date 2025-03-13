@@ -1,122 +1,54 @@
 import streamlit as st
 import gspread
-from google.oauth2.service_account import Credentials
-from google.oauth2 import service_account
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 import uuid
-import datetime
-import pandas as pd
-from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
-# Access secret values from the secrets store
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"]
-)
+def get_google_sheet():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Your Google Sheet Name")  # Replace with your sheet name
+    return sheet.worksheet("AppActivationData")
 
-# Define the scopes for accessing Google Sheets and Google Drive
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = credentials.with_scopes(scope)
-
-# Authorize Google Sheets access
-client = gspread.authorize(credentials)
-
-# Get the Google Sheets URL from secrets
-SHEET_URL = st.secrets["sheets"]["SHEET_URL"]
-
-# Open the Google Sheets using the URL from secrets
-sheet = client.open_by_url(SHEET_URL)
-
-# Access specific sheet (App Activation Data)
-activation_data_sheet = sheet.worksheet("AppActivationData")  # Adjust the sheet name as per your setup
-
-# Function to append data to Google Sheets
 def append_to_sheet(data):
+    activation_data_sheet = get_google_sheet()
     activation_data_sheet.append_row(data)
 
-# Streamlit UI setup
-st.markdown("""
-    <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        .stButton>button {border-radius: 12px; background-color: #4CAF50; color: white; font-size: 16px; padding: 10px 24px;}
-        .stTextInput>div>div>input {border-radius: 10px; border: 1px solid #ccc; padding: 10px;}
-    </style>
-""", unsafe_allow_html=True)
+def main():
+    st.title("Activation Data Form")
 
-# App Activation Data Form
-st.markdown("## 📲 App Activation Data Form")
+    activation_id = str(uuid.uuid4())
+    start_date = st.date_input("Start Date", datetime.today())
+    start_time = st.time_input("Start Time", datetime.now().time())
+    venue = st.text_input("Venue")
+    activation_name = st.text_input("Activation Name")
+    activation_brand = st.text_input("Activation Brand")
+    region = st.text_input("Region")
+    competitor_brand = st.selectbox("Competitor Brand", [
+        'B&H RED', 'B&H BLUE', 'B&H BLUE SWITCH', 'DUNHILL COURTLEIGH BLEND', 
+        'PETER STUYVESANT BLUE', 'PETER STUYVESANT SILVER', 'DUNHILL ECLIPSE DOUBLE PULSE 20\'s', 
+        'DUNHILL ECLIPSE DOUBLE PULSE 10\'s', 'DUNHILL ECLIPSE BLUE SWITCH', 'PETER STUYVESANT FILTER', 
+        'PALL MALL XL PULSE', 'PALL MALL XL BOOST', 'PALL MALL RED', 'PALL MALL BLUE', 'KENT SILVER', 
+        'MARLBORO BEYOND VISTA', 'DUNHILL COURTLEIGH BLEND 10\'s', 'MARLBORO BEYOND BLUE', 
+        'ROTHMANS FILTER BLUE', 'ROTHMANS SPECIAL RED', 'CHESTERFIELD COOL TASTE', 
+        'CHESTERFIELD TUNED BLUE', 'CHESTERFIELD TUNED AQUA'
+    ])
+    jti_products = st.text_input("JTI Products")
+    made_sale = st.radio("Did you make a sale?", ["Yes", "No"], key="made_sale")
+    num_boxes_sold = st.number_input("Number of Boxes Sold", min_value=0, step=1) if made_sale == "Yes" else ""
+    agency_name = st.text_input("Capture Agency Name")
+    
+    if st.button("Submit"):
+        form_data = [
+            activation_id, start_date.strftime("%Y-%m-%d"), start_time.strftime("%H:%M:%S"), venue, activation_name, 
+            activation_brand, region, competitor_brand, jti_products, made_sale, num_boxes_sold, agency_name
+        ]
+        append_to_sheet(form_data)
+        st.success("Data submitted successfully!")
 
-with st.form("app_activation_form"):
-    col1, col2 = st.columns(2)
-    
-    # Inputs
-    with col1:
-        activation_id = str(uuid.uuid4())  # Convert UUID to string
-        start_date = datetime.datetime.now().date()  # datetime.date
-        start_time = datetime.datetime.now().time()  # datetime.time
-    with col2:
-        venue = st.text_input("Venue", value="Mieliepop Festival")
-        activation_name = st.text_input("Activation Name", value="Mieliepop Festival")
-        activation_brand = st.selectbox("Activation Brand", ["Sense Family", "Winston Family", "Camel Family"])
-    
-    st.markdown("### 🔥 Engagement Details")
-    col3, col4 = st.columns(2)
-    
-    with col3:
-        region = st.selectbox("Region", ["Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West", "Northern Cape", "Western Cape"])
-        smoked_camel_winston = st.radio("Have you smoked Camel/Winston ever?", ["Yes", "No"], key="smoked_camel_winston")
-        if smoked_camel_winston == "Yes":
-            recommend_score = st.slider("How likely are you to recommend us?", 0, 10)
-    with col4:
-        competitor_brand = st.selectbox("Competitor Brand", [
-            "B&H RED", "B&H BLUE", "B&H BLUE SWITCH", "DUNHILL COURTLEIGH BLEND", "PETER STUYVESANT BLUE", "PETER STUYVESANT SILVER",
-            "DUNHILL ECLIPSE DOUBLE PULSE 20's", "DUNHILL ECLIPSE DOUBLE PULSE 10's", "DUNHILL ECLIPSE BLUE SWITCH", "PETER STUYVESANT FILTER",
-            "PALL MALL XL PULSE", "PALL MALL XL BOOST", "PALL MALL RED", "PALL MALL BLUE", "KENT SILVER", "MARLBORO BEYOND VISTA",
-            "DUNHILL COURTLEIGH BLEND 10's", "MARLBORO BEYOND BLUE", "ROTHMANS FILTER BLUE", "ROTHMANS SPECIAL RED", "CHESTERFIELD COOL TASTE",
-            "CHESTERFIELD TUNED BLUE", "CHESTERFIELD TUNED AQUA"
-        ])
-        jti_products = st.selectbox("JTI Products", [
-            "CAMEL SENSO RED", "CAMEL SENSO BLUE", "CAMEL SENSO PLATINUM", "CAMEL ACTIVATE DOUBLE MINT & BERRY 20'S", "CAMEL ACTIVATE DOUBLE MINT & BERRY 10'S",
-            "CAMEL ACTIVATE MINT", "WINSTON ORIGINAL RED", "WINSTON ORIGINAL BLUE", "WINSTON EXPAND PURPLE MIX", "WINSTON EXPAND ARCTIC COOL", "WINSTON JUST RED", "WINSTON JUST BLUE"
-        ])
-    
-    did_sale = st.radio("Did you make a sale?", ["Yes", "No"], key="did_sale")
-    
-    if did_sale == "Yes":
-        num_sales = st.number_input("Number of boxes sold", min_value=0)
-    else:
-        num_sales = None  # Keep the field hidden if "No" is selected
-    
-    capture_agency = st.selectbox("Capture Agency Name", ["Leestan Trading", "Purplerocket", "JR Promotions"])
-    
-    submitted = st.form_submit_button("Submit Activation Data")
-    
-    # Validation and Feedback
-    if submitted:
-        if not venue or not activation_name or not activation_brand:
-            st.error("Please fill in all required fields: Venue, Activation Name, Activation Brand.")
-        else:
-            # Collect form data into a list
-            form_data = [
-                str(activation_id),  # Convert UUID to string
-                start_date.strftime("%Y-%m-%d"),  # Convert datetime.date to string
-                start_time.strftime("%H:%M:%S"),  # Convert datetime.time to string
-                venue,
-                activation_name,
-                activation_brand,
-                region,
-                smoked_camel_winston,
-                recommend_score if smoked_camel_winston == "Yes" else None,
-                competitor_brand,
-                jti_products,
-                did_sale,
-                num_sales if num_sales is not None else 0,  # Ensure num_sales is a number
-                capture_agency
-            ]
-            
-            # Append data to Google Sheet
-            append_to_sheet(form_data)
-            st.success("Activation Data Submitted Successfully! 🚀")
+if __name__ == "__main__":
+    main()
 
 
 
